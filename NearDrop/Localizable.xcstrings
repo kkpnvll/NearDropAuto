@@ -118,50 +118,6 @@
         }
       }
     },
-    "LaunchAtLogin" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Launch at login"
-          }
-        }
-      }
-    },
-    "LaunchAtLoginError" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Launch at Login Error"
-          }
-        }
-      }
-    },
-    "LaunchAtLoginUnsupported" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Feature Not Available"
-          }
-        }
-      }
-    },
-    "LaunchAtLoginUnsupportedMessage" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Launch at login requires macOS 13 or later."
-          }
-        }
-      }
-    },
     "Decline" : {
       "localizations" : {
         "ar" : {
@@ -716,6 +672,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通訊錯誤"
+          }
+        }
+      }
+    },
+    "LaunchAtLogin" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Launch at login"
+          }
+        }
+      }
+    },
+    "LaunchAtLoginError" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Launch at Login Error"
+          }
+        }
+      }
+    },
+    "LaunchAtLoginUnsupported" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Feature Not Available"
+          }
+        }
+      }
+    },
+    "LaunchAtLoginUnsupportedMessage" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Launch at login requires macOS 13 or later."
           }
         }
       }
@@ -1524,17 +1524,6 @@
         }
       }
     },
-    "ReceivingFiles" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Receiving %1$@ from %2$@"
-          }
-        }
-      }
-    },
     "Quit" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -1553,7 +1542,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Quit QuickShare"
+            "value" : "Quit QuickSend"
           }
         },
         "es" : {
@@ -1644,6 +1633,17 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "退出 NearDrop"
+          }
+        }
+      }
+    },
+    "ReceivingFiles" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Receiving %1$@ from %2$@"
           }
         }
       }
