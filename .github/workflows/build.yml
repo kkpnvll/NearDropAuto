@@ -15,14 +15,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Очищаем настройки подписи в проекте
+    # Отключаем подпись кода в проекте Xcode
     - name: Disable Code Signing in Project
       run: |
         sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/DEVELOPMENT_TEAM = .*;//g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' NearDrop.xcodeproj/project.pbxproj || true
 
-    # Сборка проекта с выводом ошибок в отдельный файл для диагностики
+    # Сборка проекта (Она у вас работает на 100%)
     - name: Build App
       run: |
         xcodebuild clean build \
@@ -33,18 +33,17 @@ jobs:
           SYMROOT=$GITHUB_WORKSPACE/build/sym \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
-          COMPILER_INDEX_STORE_ENABLE=NO > xcode_build.log 2>&1 || true
+          COMPILER_INDEX_STORE_ENABLE=NO
 
-    # Выводим в лог GitHub Actions только строки с ошибками компиляции
-    - name: Diagnose Errors
+    # Подготавливаем файл к отправке, используя его настоящее имя QuickShare.app
+    - name: Prepare Artifact
       run: |
-        echo "=== КРИТИЧЕСКИЕ ОШИБКИ СБОРКИ XCODE ==="
-        grep -E "error:|failed|Could not" xcode_build.log || tail -n 30 xcode_build.log
-        
-        # Если папка приложения всё же создалась, мы её запишем, иначе прервем сборку честно
-        FOUND_PATH=$(find . -name "NearDrop.app" -type d | head -n 1)
-        if [ -z "$FOUND_PATH" ]; then
-          echo "Сборка не удалась. Изучите ошибки выше."
-          exit 1
-        fi
-        echo "app_path=$FOUND_PATH" >> $GITHUB_OUTPUT
+        mkdir -p ./dist
+        cp -R $GITHUB_WORKSPACE/build/sym/Release/QuickShare.app ./dist/QuickShare.app
+
+    # Выгружаем готовое приложение
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QuickShare-App
+        path: ./dist/QuickShare.app
