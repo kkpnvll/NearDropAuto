@@ -1,4 +1,4 @@
-name: NearDropAuto
+name: Build NearDropAuto
 
 on:
   push:
@@ -15,31 +15,33 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Отключаем подпись в метаданных проекта
+    # Полностью вырезаем любые упоминания подписи и команд разработчика из файла проекта
     - name: Disable Code Signing in Project
       run: |
         sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/DEVELOPMENT_TEAM = .*;//g' NearDrop.xcodeproj/project.pbxproj || true
+        sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' NearDrop.xcodeproj/project.pbxproj || true
 
-    # Создаем Xcode-архив в локальную папку проекта
-    - name: Archive App
+    # Собираем проект через стандартный 'build', но переопределяем папки Xcode через OBJROOT и SYMROOT
+    - name: Build App
       run: |
-        xcodebuild archive \
+        xcodebuild clean build \
           -project NearDrop.xcodeproj \
           -scheme NearDrop \
           -configuration Release \
-          -archivePath ./build/NearDrop.xcarchive \
+          OBJROOT=$GITHUB_WORKSPACE/build/obj \
+          SYMROOT=$GITHUB_WORKSPACE/build/sym \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           COMPILER_INDEX_STORE_ENABLE=NO
 
-    # Достаем готовое приложение .app из структуры архива
-    - name: Extract App From Archive
+    # Копируем готовое приложение в чистую папку перед отправкой
+    - name: Prepare Artifact
       run: |
         mkdir -p ./dist
-        cp -R ./build/NearDrop.xcarchive/Products/Applications/NearDrop.app ./dist/NearDrop.app
+        cp -R $GITHUB_WORKSPACE/build/sym/Release/NearDrop.app ./dist/NearDrop.app
 
-    # Выгружаем готовое приложение
+    # Выгружаем готовый артефакт
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
