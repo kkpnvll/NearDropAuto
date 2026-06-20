@@ -15,14 +15,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Отключаем подпись кода в проекте Xcode
+    # Отключаем подпись в метаданных проекта
     - name: Disable Code Signing in Project
       run: |
         sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/DEVELOPMENT_TEAM = .*;//g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' NearDrop.xcodeproj/project.pbxproj || true
 
-    # Сборка проекта (Она у вас работает на 100%)
+    # Сборка проекта (Успешно работает)
     - name: Build App
       run: |
         xcodebuild clean build \
@@ -35,15 +35,16 @@ jobs:
           CODE_SIGNING_REQUIRED=NO \
           COMPILER_INDEX_STORE_ENABLE=NO
 
-    # Подготавливаем файл к отправке, используя его настоящее имя QuickShare.app
-    - name: Prepare Artifact
+    # Архивируем приложение через родной утилитный zip macOS, чтобы сохранить структуру пакета
+    - name: Package App into ZIP
       run: |
         mkdir -p ./dist
-        cp -R $GITHUB_WORKSPACE/build/sym/Release/QuickShare.app ./dist/QuickShare.app
+        cd $GITHUB_WORKSPACE/build/sym/Release/
+        zip -r -y $GITHUB_WORKSPACE/dist/QuickShare.zip QuickShare.app
 
-    # Выгружаем готовое приложение
+    # Выгружаем готовый, защищенный ZIP-архив
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: QuickShare-App
-        path: ./dist/QuickShare.app
+        name: QuickShare-Mac-App
+        path: ./dist/QuickShare.zip
