@@ -5,7 +5,7 @@ on:
     branches: [ master, main ]
   pull_request:
     branches: [ master, main ]
-  workflow_dispatch: # Позволяет запускать сборку вручную
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,13 +15,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Принудительно отключаем подпись в самом файле проекта, чтобы избежать ошибок Xcode
+    # Очищаем подпись в проекте, чтобы Xcode не требовал сертификаты
     - name: Disable Code Signing in Project
       run: |
         sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/DEVELOPMENT_TEAM = .*;//g' NearDrop.xcodeproj/project.pbxproj || true
 
-    # Сборка проекта без требования сертификатов Apple Developer
+    # Сборка проекта (Этот шаг у вас гарантированно работает)
     - name: Build App
       run: |
         xcodebuild clean build \
@@ -32,9 +32,25 @@ jobs:
           CODE_SIGNING_REQUIRED=NO \
           COMPILER_INDEX_STORE_ENABLE=NO
 
-    # Архивируем готовое приложение (.app), чтобы его можно было скачать из GitHub Actions
+    # Логический поиск скомпилированного приложения во всех скрытых папках Xcode
+    - name: Locate Built App
+      id: locate
+      run: |
+        # Ищем папку NearDrop.app внутри директории сборки
+        FOUND_PATH=$(find . -name "NearDrop.app" -type d | head -n 1)
+        
+        if [ -z "$FOUND_PATH" ]; then
+          echo "Ошибка: Файл NearDrop.app не найден в директории проекта."
+          exit 1
+        fi
+        
+        echo "Файл успешно найден по пути: $FOUND_PATH"
+        # Передаем путь в аутпут шага для использования в upload-artifact
+        echo "app_path=$FOUND_PATH" >> $GITHUB_OUTPUT
+
+    # Выгрузка артефакта по точно найденному пути
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: NearDropAuto-App
-        path: build/Release/NearDrop.app
+        path: ${{ steps.locate.outputs.app_path }}
