@@ -15,14 +15,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Полностью вырезаем любые упоминания подписи и команд разработчика из файла проекта
+    # Очищаем настройки подписи в проекте
     - name: Disable Code Signing in Project
       run: |
         sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/DEVELOPMENT_TEAM = .*;//g' NearDrop.xcodeproj/project.pbxproj || true
         sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' NearDrop.xcodeproj/project.pbxproj || true
 
-    # Собираем проект через стандартный 'build', но переопределяем папки Xcode через OBJROOT и SYMROOT
+    # Сборка проекта с выводом ошибок в отдельный файл для диагностики
     - name: Build App
       run: |
         xcodebuild clean build \
@@ -33,17 +33,18 @@ jobs:
           SYMROOT=$GITHUB_WORKSPACE/build/sym \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
-          COMPILER_INDEX_STORE_ENABLE=NO
+          COMPILER_INDEX_STORE_ENABLE=NO > xcode_build.log 2>&1 || true
 
-    # Копируем готовое приложение в чистую папку перед отправкой
-    - name: Prepare Artifact
+    # Выводим в лог GitHub Actions только строки с ошибками компиляции
+    - name: Diagnose Errors
       run: |
-        mkdir -p ./dist
-        cp -R $GITHUB_WORKSPACE/build/sym/Release/NearDrop.app ./dist/NearDrop.app
-
-    # Выгружаем готовый артефакт
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: NearDropAuto-App
-        path: ./dist/NearDrop.app
+        echo "=== КРИТИЧЕСКИЕ ОШИБКИ СБОРКИ XCODE ==="
+        grep -E "error:|failed|Could not" xcode_build.log || tail -n 30 xcode_build.log
+        
+        # Если папка приложения всё же создалась, мы её запишем, иначе прервем сборку честно
+        FOUND_PATH=$(find . -name "NearDrop.app" -type d | head -n 1)
+        if [ -z "$FOUND_PATH" ]; then
+          echo "Сборка не удалась. Изучите ошибки выше."
+          exit 1
+        fi
+        echo "app_path=$FOUND_PATH" >> $GITHUB_OUTPUT
